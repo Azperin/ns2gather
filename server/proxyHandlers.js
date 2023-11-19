@@ -1,5 +1,5 @@
 const fs = require('node:fs');
-const DB_USERS_FOLDER_PATH = './db/users';
+const CONSTANTS = require('./constants.js');
 const PROXY_HANDLERS = {
 	user: {
 		set: function(user, userProperty, newValue ) {
@@ -9,15 +9,15 @@ const PROXY_HANDLERS = {
 	
 			user[userProperty] = newValue;
 	
-			fs.writeFileSync(`${ DB_USERS_FOLDER_PATH }/${ user.steamid }.json`, JSON.stringify(user, null, '\t'));
+			fs.writeFileSync(`${ CONSTANTS.DB_USERS_FOLDER_PATH }/${ user.steamid }.json`, JSON.stringify(user, null, '\t'));
 	
 			return true;
 		},
 	},
-	
+
 	gather: {
 		set: function(gather, gatherProperty, newValue ) {
-			if (gatherProperty !== 'cache') {
+			if (gatherProperty !== CONSTANTS.GATHER_CACHE_PROPERTY_NAME) {
 				gather.clearCache();
 			};
 	

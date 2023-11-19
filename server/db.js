@@ -1,6 +1,5 @@
 const fs = require('node:fs');
-const DB_USERS_FOLDER_PATH = './db/users';
-const TOKEN_SYMBOLS = 'abcdefghijklmnopqrstuvwxyz_.!?$-ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789'.split('');
+const CONSTANTS = require('./constants.js');
 const PROXY_HANDLERS = require('./proxyHandlers.js');
 const DB = new Database();
 
@@ -48,9 +47,9 @@ User.generateToken = function(token_length = 160) {
 		throw new Error('TOKEN LENGTH FUCKED UP');
 	};
 	let token = '';
-	const SYBOLS_LENGTH = TOKEN_SYMBOLS.length;
+	const SYBOLS_LENGTH = CONSTANTS.TOKEN_SYMBOLS.length;
 	while(token_length--) {
-		token += TOKEN_SYMBOLS[Math.floor(Math.random() * SYBOLS_LENGTH)];
+		token += CONSTANTS.TOKEN_SYMBOLS[Math.floor(Math.random() * SYBOLS_LENGTH)];
 	};
 	return token;
 };
@@ -58,12 +57,12 @@ User.generateToken = function(token_length = 160) {
 function Gather() {
 	this.state = 'gathering'; // ['gathering', 'checking', 'gathered'] TODO: add state descriptions to readme
 	this.readyroom = new Readyroom(); // players
-	this.cache = '';
+	this[CONSTANTS.GATHER_CACHE_PROPERTY_NAME] = '';
 	return new Proxy(this, PROXY_HANDLERS.gather);
 };
 
 Gather.prototype.clearCache = function () {
-	this.cache = '';
+	this[CONSTANTS.GATHER_CACHE_PROPERTY_NAME] = '';
 	return this;
 };
 
@@ -119,8 +118,8 @@ Player.prototype.gather = function() {
 };
 
 // populate DB with users from local file system
-fs.mkdirSync(DB_USERS_FOLDER_PATH, { recursive: true });
-fs.readdirSync(DB_USERS_FOLDER_PATH, { withFileTypes: true } ).forEach(user_id => {
+fs.mkdirSync(CONSTANTS.DB_USERS_FOLDER_PATH, { recursive: true });
+fs.readdirSync(CONSTANTS.DB_USERS_FOLDER_PATH, { withFileTypes: true } ).forEach(user_id => {
 	if (!user_id.name.endsWith('.json') || user_id.isDirectory()) return;
 	const user = require(`${ DB_USERS_FOLDER_PATH }/${ user_id.name }`);
 	DB.addUser(user_id.name.replace('.json', ''), user);
