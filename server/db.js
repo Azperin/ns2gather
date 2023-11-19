@@ -1,50 +1,7 @@
 const fs = require('node:fs');
 const DB_USERS_FOLDER_PATH = './db/users';
 const TOKEN_SYMBOLS = 'abcdefghijklmnopqrstuvwxyz_.!?$-ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789'.split('');
-const GATHER_CACHED_WEBSOCKET_MESSAGE_PROPRTY_NAME = 'cache';
-
-const userProxyHandlers = {
-	set: function(user, userProperty, newValue ) {
-		if (userProperty === 'steamid') {
-			throw new Error(`CANNOT CHANGE STEAMID ON USER: ${ user[userProperty] } --- ${ newValue }`);
-		};
-
-		user[userProperty] = newValue;
-
-		fs.writeFileSync(`${ DB_USERS_FOLDER_PATH }/${ user.steamid }.json`, JSON.stringify(user, null, '\t'));
-
-		return true;
-	},
-};
-
-const gatherProxyHandlers = {
-	set: function(gather, gatherProperty, newValue ) {
-		if (gatherProperty !== GATHER_CACHED_WEBSOCKET_MESSAGE_PROPRTY_NAME) {
-			gather.clearCache();
-		};
-
-		gather[gatherProperty] = newValue;
-		return true;
-	},
-};
-
-const readyroomProxyHandlers = {
-	set: function(readyroom, rrProperty, newValue ) {
-		readyroom[rrProperty] = newValue;
-		readyroom.gather()?.clearCache();
-		return true;
-	},
-};
-
-const playerProxyHandlers = {
-	set: function(player, playerProperty, newValue ) {
-		// can combine with readyroom, if we will handle player blocks outside proxy
-		player[playerProperty] = newValue;
-		player.gather()?.clearCache();
-		return true;
-	},
-};
-
+const PROXY_HANDLERS = require('./proxyHandlers.js');
 const DB = new Database();
 
 function Database() {
@@ -78,7 +35,7 @@ function User(steamid, user) {
 		this.avatar = '';
 	};
 
-	return new Proxy(this, userProxyHandlers);
+	return new Proxy(this, PROXY_HANDLERS.user);
 };
 
 User.prototype.updateToken = function() {
@@ -101,12 +58,12 @@ User.generateToken = function(token_length = 160) {
 function Gather() {
 	this.state = 'gathering'; // ['gathering', 'checking', 'gathered'] TODO: add state descriptions to readme
 	this.readyroom = new Readyroom(); // players
-	this[GATHER_CACHED_WEBSOCKET_MESSAGE_PROPRTY_NAME] = '';
-	return new Proxy(this, gatherProxyHandlers);
+	this.cache = '';
+	return new Proxy(this, PROXY_HANDLERS.gather);
 };
 
 Gather.prototype.clearCache = function () {
-	this[GATHER_CACHED_WEBSOCKET_MESSAGE_PROPRTY_NAME] = '';
+	this.cache = '';
 	return this;
 };
 
@@ -120,7 +77,7 @@ Gather.prototype.resetGather = function () {
 };
 
 function Readyroom() {
-	return new Proxy(this, readyroomProxyHandlers);
+	return new Proxy(this, PROXY_HANDLERS.readyroom);
 };
 
 Readyroom.prototype.gather = function() {
@@ -154,7 +111,7 @@ Readyroom.prototype.removePlayer = function(steamid) {
 function Player(steamid) {
 	this.steamid = steamid;
 	this.isReady = false; // checked durning checking stage on gather
-	return new Proxy(this, playerProxyHandlers);
+	return new Proxy(this, PROXY_HANDLERS.player);
 };
 
 Player.prototype.gather = function() {
