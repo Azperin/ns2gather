@@ -1,0 +1,6 @@
+@font-face {
+	font-family: "Montserrat:wght";
+	src: url("fonts/Montserrat-VariableFont_wght.ttf");
+}
+
+* { padding: 0px; margin: 0px; box-sizing: border-box; font-family: "Montserrat:wght","Nunito", system-ui, sans-serif; font-weight: 600; }
