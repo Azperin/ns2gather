@@ -1,7 +1,8 @@
 const fs = require('node:fs');
 const DB_USERS_FOLDER_PATH = './db/users';
 const TOKEN_SYMBOLS = 'abcdefghijklmnopqrstuvwxyz_.!?$-ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789'.split('');
-const DB = new Database();
+const GATHER_CACHED_WEBSOCKET_MESSAGE_PROPRTY_NAME = 'cache';
+
 const userProxyHandlers = {
 	set: function(user, userProperty, newValue ) {
 		if (userProperty === 'steamid') {
@@ -10,15 +11,45 @@ const userProxyHandlers = {
 
 		user[userProperty] = newValue;
 
-		// autosave on changes
 		fs.writeFileSync(`${ DB_USERS_FOLDER_PATH }/${ user.steamid }.json`, JSON.stringify(user, null, '\t'));
 
 		return true;
 	},
 };
 
+const gatherProxyHandlers = {
+	set: function(gather, gatherProperty, newValue ) {
+		if (gatherProperty !== GATHER_CACHED_WEBSOCKET_MESSAGE_PROPRTY_NAME) {
+			gather.clearCache();
+		};
+
+		gather[gatherProperty] = newValue;
+		return true;
+	},
+};
+
+const readyroomProxyHandlers = {
+	set: function(readyroom, rrProperty, newValue ) {
+		readyroom[rrProperty] = newValue;
+		readyroom.gather()?.clearCache();
+		return true;
+	},
+};
+
+const playerProxyHandlers = {
+	set: function(player, playerProperty, newValue ) {
+		// can combine with readyroom, if we will handle player blocks outside proxy
+		player[playerProperty] = newValue;
+		player.gather()?.clearCache();
+		return true;
+	},
+};
+
+const DB = new Database();
+
 function Database() {
 	this.users = {};
+	this.gather = new Gather();
 	return this;
 };
 
@@ -29,6 +60,9 @@ Database.prototype.addUser = function(steamid, user) {
 
 	if (!this.users.hasOwnProperty(steamid)) {
 		this.users[steamid] = new User(steamid, user);
+		if (!user) {
+			this.users[steamid].name = this.users[steamid].name; // trigger proxy to save in local
+		};
 	};
 
 	return this.users[steamid];
@@ -64,17 +98,75 @@ User.generateToken = function(token_length = 160) {
 	return token;
 };
 
-function loadUsers() {
-	fs.mkdirSync(DB_USERS_FOLDER_PATH, { recursive: true });
-	fs.readdirSync(DB_USERS_FOLDER_PATH, { withFileTypes: true } ).forEach(user_id => {
-		if (!user_id.name.endsWith('.json') || user_id.isDirectory()) return;
-		const user = require(`${ DB_USERS_FOLDER_PATH }/${ user_id.name }`);
-		DB.addUser(user_id.name.replace('.json', ''), user);
-	});
+function Gather() {
+	this.state = 'gathering'; // ['gathering', 'checking', 'gathered'] TODO: add state descriptions to readme
+	this.readyroom = new Readyroom(); // players
+	this[GATHER_CACHED_WEBSOCKET_MESSAGE_PROPRTY_NAME] = '';
+	return new Proxy(this, gatherProxyHandlers);
 };
 
+Gather.prototype.clearCache = function () {
+	this[GATHER_CACHED_WEBSOCKET_MESSAGE_PROPRTY_NAME] = '';
+	return this;
+};
 
+Gather.prototype.resetGather = function () {
+	// or just create new Gather to this ?
+	this.state = 'gathering';
+	Object.keys(this.readyroom).forEach(key => {
+		delete this.readyroom[key];
+	});
+	return this;
+};
 
+function Readyroom() {
+	return new Proxy(this, readyroomProxyHandlers);
+};
 
-loadUsers();
+Readyroom.prototype.gather = function() {
+	return DB.gather;
+};
+
+Readyroom.prototype.addPlayer = function(steamid) {
+	if (!steamid) {
+		throw new Error('Cannot add user to readyroom without steamid');
+	};
+
+	if (!this.hasOwnProperty(steamid)) {
+		this[steamid] = new Player(steamid);
+	};
+
+	return this[steamid];
+};
+
+Readyroom.prototype.removePlayer = function(steamid) {
+	if (!steamid) {
+		throw new Error('Cannot remove user from readyroom without steamid');
+	};
+
+	if (this.hasOwnProperty(steamid)) {
+		delete this[steamid];
+	};
+
+	return this;
+};
+
+function Player(steamid) {
+	this.steamid = steamid;
+	this.isReady = false; // checked durning checking stage on gather
+	return new Proxy(this, playerProxyHandlers);
+};
+
+Player.prototype.gather = function() {
+	return DB.gather;
+};
+
+// populate DB with users from local file system
+fs.mkdirSync(DB_USERS_FOLDER_PATH, { recursive: true });
+fs.readdirSync(DB_USERS_FOLDER_PATH, { withFileTypes: true } ).forEach(user_id => {
+	if (!user_id.name.endsWith('.json') || user_id.isDirectory()) return;
+	const user = require(`${ DB_USERS_FOLDER_PATH }/${ user_id.name }`);
+	DB.addUser(user_id.name.replace('.json', ''), user);
+});
+
 module.exports = DB;
