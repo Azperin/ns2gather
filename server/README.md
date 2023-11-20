@@ -1,1 +1,5 @@
-### TODO server structure
+### `.env`
+```
+STEAM_LOGIN=
+STEAM_PASSWORD=
+```

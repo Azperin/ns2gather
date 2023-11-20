@@ -26,4 +26,9 @@ Object.defineProperty(CONSTANTS, 'WEBSOCKET_ROUTES_ROOT_DIR', {
 	writable: false,
 });
 
+Object.defineProperty(CONSTANTS, 'STEAM_AVATAR_DEFAULT_URL', {
+	value: 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/',
+	writable: false,
+});
+
 module.exports = CONSTANTS;
