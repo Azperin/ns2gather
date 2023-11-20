@@ -136,15 +136,12 @@ Readyroom.prototype.removePlayer = function(steamid) {
 };
 
 Readyroom.prototype.isEnoughPlayersJoined = function() {
-	return Object.keys(this).length > 19;
+	return Object.keys(this).length > 1;
 };
 
 Readyroom.prototype.isEnoughPlayersReady = function() {
 	return Object.values(this).filter(player => player.isReady).length > 15;
 };
-
-
-
 
 function Player(steamid) {
 	this.steamid = steamid;

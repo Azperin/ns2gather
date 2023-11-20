@@ -79,8 +79,8 @@
 				GATHER.state = gather.state;
 				GATHER.id = gather.id;
 
-				Object.values(GATHER.readyroom).forEach((player) => {
-					GATHER.readyroom.removePlayer(player);
+				Object.keys(GATHER.readyroom).forEach((steamid) => {
+					GATHER.readyroom.removePlayer(steamid);
 				});
 
 				Object.values(gather.readyroom).forEach((player) => {
@@ -182,6 +182,7 @@
 		Readyroom.prototype.addPlayer = function(player) {
 			if (player.steamid === GATHER.mySteamid) {
 				GATHER.gatherElement.classList.add('joined');
+				GATHER.gatherElement.classList.toggle('checked', player.isReady);
 			};
 
 			this[player.steamid] = new Player(player);
@@ -191,6 +192,7 @@
 		Readyroom.prototype.removePlayer = function(steamid) {
 			if (steamid === GATHER.mySteamid) {
 				GATHER.gatherElement.classList.remove('joined');
+				GATHER.gatherElement.classList.remove('checked');
 			};
 
 			this[steamid].playerCardElement.remove();
@@ -204,7 +206,8 @@
 				player[playerProp] = val;
 
 				if (playerProp === 'isReady') {
-					player.playerCardElement.classList.toggle('is-ready', !!val);
+					player.playerCardElement.classList.toggle('is-ready', val);
+					GATHER.gatherElement.classList.toggle('checked', val);
 				};
 
 				return true;
@@ -225,6 +228,9 @@
 			this.isReady = player.isReady;
 
 			document.getElementById('readyroom').append(this.playerCardElement);
+			this.playerCardElement.classList.toggle('is-ready', player.isReady);
+			const playerIsMe = GATHER.mySteamid === player.steamid;
+
 			return new Proxy(this, playerProxyHandlers);
 		};
 

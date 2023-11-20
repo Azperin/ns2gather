@@ -8,7 +8,7 @@ module.exports = ({DB, WSS, ws }) => {
 	const msg = JSON.stringify({ method: 'readyroom', player: player });
 	WSS.broadcast(msg, 7);
 
-	const enoughPlayersJoined = DB.gather.readyroom.isEnoughPlayersReady();
+	const enoughPlayersJoined = DB.gather.readyroom.isEnoughPlayersJoined();
 	if (enoughPlayersJoined) {
 		DB.gather.state = 'checking';
 		const checkingDuration = 15000;
@@ -21,7 +21,8 @@ module.exports = ({DB, WSS, ws }) => {
 
 			if (enoughPlayersReady) {
 				const graceDuration = 15000;
-				const gatheredStateMsg = JSON.stringify({ method: 'gather_state', state: 'gathered' });
+				DB.gather.state = 'gathered';
+				const gatheredStateMsg = JSON.stringify({ method: 'gather_state', state: DB.gather.state });
 
 				WSS.broadcast(gatheredStateMsg);
 
@@ -29,12 +30,12 @@ module.exports = ({DB, WSS, ws }) => {
 					DB.gather.resetGather();
 					const newGatherMsg = JSON.stringify({ method: 'gather_get', gather: DB.gather });
 					WSS.broadcast(newGatherMsg);
-					gather_get
+
 				}, graceDuration);
 				
 			} else {
-
 				const blocks = DB.gather.readyroom.clear();
+				DB.gather.state = 'gathering';
 				const cleanedGatherMsg = JSON.stringify({ method: 'gather_get', gather: DB.gather });
 				WSS.broadcast(cleanedGatherMsg);
 
