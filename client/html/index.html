@@ -10,26 +10,52 @@
 <body id="gather" class="loading">
 	<div class="loader">...loading</div>
 	<input type="password" class="logged-hidden login-token-input" />
-	<button class="logged-only">LOGOUT</button>
+	<button class="logout-btn logged-only">LOGOUT</button>
 
-	<div id="readyroom"></div>
+	<button class="rr-join-btn logged-only gathering-only joined-hidden">READYROOM JOIN</button>
+	<button class="rr-leave-btn logged-only gathering-only joined-only">READYROOM LEAVE</button>
+	<button class="rr-ready-btn logged-only checking-only checked-hidden">READYROOM READY</button>
+	
+	<div id="readyroom">
+		<template id="player-card-template">
+			<div class="player-card">
+				<span></span>
+				<div class="player-avatar"><img class="player-avatar-img" /></div>
+			</div>
+		</template>
+	</div>
 
 	<script src="pako.js"></script>
 	<script>
+		const NO_AVATAR_SRC = 'https://cdn.discordapp.com/attachments/858244653227573258/1175479296404508733/noavatar.jpg';
+		const PLAYER_CARD_TEMPLATE = document.getElementById('player-card-template');
+
 		const GATHER = new Proxy({
 			gatherElement: document.getElementById('gather'),
 			mySteamid: '',
 			state: 'loading',
-			readyroomElement: document.getElementById('readyroom'),
-			readyroom: {},
+			readyroom: new Readyroom(),
 		}, {
 			set: (gatherObj, prop, val) => {
 				const prevValue = gatherObj[prop];
 				gatherObj[prop] = val;
 
-				console.log(prop);
 				if (prop === 'mySteamid') {
-					gatherObj.gatherElement.classList.toggle('logged', !!val);
+					if (!val) {
+						gatherObj.gatherElement.classList.remove('logged');
+						gatherObj.gatherElement.classList.remove('joined');
+						gatherObj.gatherElement.classList.remove('checked');
+					} else {
+						gatherObj.gatherElement.classList.add('logged');
+						const isJoined = gatherObj.readyroom.hasOwnProperty(val);
+						gatherObj.gatherElement.classList.toggle('joined', isJoined);
+						if (isJoined) {
+							const isChecked = gatherObj.readyroom[val].isReady;
+							gatherObj.gatherElement.classList.toggle('checked', isChecked);
+						} else {
+							gatherObj.gatherElement.classList.remove('checked');
+						};
+					};
 				};
 
 				if (prop === 'state') {
@@ -42,18 +68,43 @@
 		});
 
 		const WEBSOCKET_ROUTES = {
-			'auth': ({ steamid = '' }) => {
+			'auth': ({ steamid = '', blocksCount, blockUntil }) => {
 				GATHER.mySteamid = steamid;
 				if (!steamid) {
 					return localStorage.removeItem('gathertoken');
 				};
 			},
-			'gather_get': ({ gather }) => {
+			'gather_get': ({ gather, blocks }) => {
+				// blocks contain information about previous failed checking phase
 				GATHER.state = gather.state;
-				// someday readyroom also will be proxy
-				Object.entries(gather.readyroom).forEach(([steamid, player]) => {
-					GATHER.readyroom[steamid] = player;
+				GATHER.id = gather.id;
+
+				Object.values(GATHER.readyroom).forEach((player) => {
+					GATHER.readyroom.removePlayer(player);
 				});
+
+				Object.values(gather.readyroom).forEach((player) => {
+					GATHER.readyroom.addPlayer(player);
+				});
+			},
+			'gather_state': ({ state }) => {
+				GATHER.state = state;
+			},
+			'readyroom': ({ steamid, leave, isReady, player }) => {
+				if (player) {
+					GATHER.readyroom.addPlayer(player);
+					return;
+				};
+
+				if (leave) {
+					GATHER.readyroom.removePlayer(steamid);
+					return;
+				};
+
+				if (isReady) {
+					GATHER.readyroom[steamid].isReady = isReady;
+					return;
+				};
 			},
 		};
 
@@ -81,6 +132,7 @@
 		};
 
 		document.querySelector('.login-token-input').addEventListener('input', ({ target }) => {
+			
 			if (GATHER.mySteamid) return;
 			if (!target.value || target.value.length < 160 || target.value.length > 250) return;
 			const [ steamid, token ] = target.value.trim().split('@'); 
@@ -94,6 +146,26 @@
 
 		});
 
+		document.querySelector('.rr-join-btn').addEventListener('click', (e) => {
+			if (!GATHER.mySteamid) return;
+			WEBSOCKET.send(JSON.stringify({ method: 'readyroom_join' }));
+		});
+
+		document.querySelector('.rr-leave-btn').addEventListener('click', (e) => {
+			if (!GATHER.mySteamid) return;
+			WEBSOCKET.send(JSON.stringify({ method: 'readyroom_leave' }));
+		});
+
+		document.querySelector('.rr-ready-btn').addEventListener('click', (e) => {
+			if (!GATHER.mySteamid) return;
+			WEBSOCKET.send(JSON.stringify({ method: 'readyroom_check' }));
+		});
+
+		document.querySelector('.logout-btn').addEventListener('click', () => {
+			if (!GATHER.mySteamid) return;
+			WEBSOCKET.send(JSON.stringify({ method: 'auth' }));
+		});
+
 		function getWebsocketAddress() {
 			switch(location.protocol) {
 				case('file:'): return "ws://localhost:3545";
@@ -102,6 +174,60 @@
 				default: return 'dunno';
 			};
 		};
+
+		function Readyroom() {
+			return this;
+		};
+
+		Readyroom.prototype.addPlayer = function(player) {
+			if (player.steamid === GATHER.mySteamid) {
+				GATHER.gatherElement.classList.add('joined');
+			};
+
+			this[player.steamid] = new Player(player);
+			return this[player.steamid];
+		};
+
+		Readyroom.prototype.removePlayer = function(steamid) {
+			if (steamid === GATHER.mySteamid) {
+				GATHER.gatherElement.classList.remove('joined');
+			};
+
+			this[steamid].playerCardElement.remove();
+			delete this[steamid];
+
+			return this;
+		};
+
+		const playerProxyHandlers = {
+			set: (player, playerProp, val) => {
+				player[playerProp] = val;
+
+				if (playerProp === 'isReady') {
+					player.playerCardElement.classList.toggle('is-ready', !!val);
+				};
+
+				return true;
+			},
+		};
+
+		function Player(player) {
+			// should readyroom handle cards or players themselfs ?
+			const el = document.importNode(PLAYER_CARD_TEMPLATE.content, true);
+			const playerCardElement = el.querySelector('.player-card');
+			const avatarSrc = player.avatar ? `https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/${ player.avatar }` : NO_AVATAR_SRC;
+
+			playerCardElement.querySelector('.player-card span').innerText = player.name || player.steamid;
+			playerCardElement.querySelector('.player-avatar-img').src = avatarSrc;
+
+			this.playerCardElement = playerCardElement;
+			this.steamid = player.steamid;
+			this.isReady = player.isReady;
+
+			document.getElementById('readyroom').append(this.playerCardElement);
+			return new Proxy(this, playerProxyHandlers);
+		};
+
 	</script>
 </body>
 </html>

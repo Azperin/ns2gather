@@ -32,6 +32,8 @@ function User(steamid, user) {
 		this.token = User.generateToken();
 		this.name = '';
 		this.avatar = '';
+		this.blocksCount = 0;
+		this.blockUntil = 0;
 	};
 
 	return new Proxy(this, PROXY_HANDLERS.user);
@@ -67,8 +69,11 @@ Gather.prototype.clearCache = function () {
 	return this;
 };
 
-Gather.prototype.resetGather = function () {
-	// or just create new Gather to this ?
+Gather.prototype.resetGather = function (shouldArchive) {
+	if (shouldArchive) {
+		// save for stats ?
+	};
+
 	this.id = Date.now();
 	this.state = 'gathering';
 	Object.keys(this.readyroom).forEach(key => {
@@ -85,6 +90,10 @@ Readyroom.prototype.gather = function() {
 	return DB.gather;
 };
 
+Readyroom.prototype.db = function() {
+	return DB;
+};
+
 Readyroom.prototype.addPlayer = function(steamid) {
 	if (!steamid) {
 		throw new Error('Cannot add user to readyroom without steamid');
@@ -95,6 +104,23 @@ Readyroom.prototype.addPlayer = function(steamid) {
 	};
 
 	return this[steamid];
+};
+
+Readyroom.prototype.clear = function() {
+	const blocks = [];
+	Object.keys(this).forEach(steamid => {
+		if (this[steamid].isReady) {
+			this[steamid].isReady = false;
+		} else {
+			this.db().users[steamid].blocksCount++;
+			// calculate block time here
+
+			blocks.push(steamid);
+			delete this[steamid]; // this.removePlayer() ?
+		};
+	});
+
+	return blocks;
 };
 
 Readyroom.prototype.removePlayer = function(steamid) {
@@ -109,14 +135,31 @@ Readyroom.prototype.removePlayer = function(steamid) {
 	return this;
 };
 
+Readyroom.prototype.isEnoughPlayersJoined = function() {
+	return Object.keys(this).length > 19;
+};
+
+Readyroom.prototype.isEnoughPlayersReady = function() {
+	return Object.values(this).filter(player => player.isReady).length > 15;
+};
+
+
+
+
 function Player(steamid) {
 	this.steamid = steamid;
-	this.isReady = false; // checked durning checking stage on gather
+	this.name = this.db().users[steamid].avatar;
+	this.avatar = this.db().users[steamid].avatar;
+	this.isReady = false;
 	return new Proxy(this, PROXY_HANDLERS.player);
 };
 
 Player.prototype.gather = function() {
 	return DB.gather;
+};
+
+Player.prototype.db = function() {
+	return DB;
 };
 
 // populate DB with users from local file system

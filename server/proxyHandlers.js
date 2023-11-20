@@ -32,6 +32,11 @@ const PROXY_HANDLERS = {
 			readyroom.gather()?.clearCache();
 			return true;
 		},
+		
+		deleteProperty: function(readyroom, steamid) {
+			delete readyroom[steamid];
+			readyroom.gather()?.clearCache();
+		},
 	},
 
 	player: {

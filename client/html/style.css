@@ -71,3 +71,27 @@
 		display: none;
 	}
 }
+
+#gather.checked {
+	.checked-hidden {
+		display: none;
+	}
+}
+
+#gather:not(.checked) {
+	.checked-only {
+		display: none;
+	}
+}
+
+#gather.joined {
+	.joined-hidden {
+		display: none;
+	}
+}
+
+#gather:not(.joined) {
+	.joined-only {
+		display: none;
+	}
+}

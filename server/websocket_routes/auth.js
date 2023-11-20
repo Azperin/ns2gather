@@ -1,7 +1,7 @@
 module.exports = ({DB, ws, message: { steamid, token } }) => {
-	
 	if (!steamid || !token) {
-		ws.send({ method: 'auth' });
+		ws.steamid = '';
+		ws.send(JSON.stringify({ method: 'auth' }));
 		return;
 	};
 	
@@ -12,5 +12,5 @@ module.exports = ({DB, ws, message: { steamid, token } }) => {
 	if (DB.users[steamid].token !== token) return;
 
 	ws.steamid = steamid;
-	ws.send(JSON.stringify({ method: 'auth', steamid: steamid }));
+	ws.send(JSON.stringify({ method: 'auth', steamid: steamid, blocksCount: DB.users[steamid], blockUntil: DB.users[steamid].blockUntil }));
 };
