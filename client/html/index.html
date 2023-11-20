@@ -9,15 +9,18 @@
 </head>
 <body id="gather" class="loading">
 	<div class="loader">...loading</div>
-	<input type="password" class="login-token-input" />
+	<input type="password" class="logged-hide login-token-input" />
+	<button class="logged-only">LOGOUT</button>
+
+	<div id="readyroom"></div>
 
 	<script src="pako.js"></script>
 	<script>
 		const GATHER = new Proxy({
-			domElement: document.getElementById('gather'),
+			gatherElement: document.getElementById('gather'),
 			mySteamid: '',
-			a: 1,
 			state: 'loading',
+			readyroomElement: document.getElementById('readyroom'),
 			readyroom: {},
 		}, {
 			set: (gatherObj, prop, val) => {
@@ -26,18 +29,18 @@
 
 				console.log(prop);
 				if (prop === 'mySteamid') {
-					gatherObj.domElement.classList.toggle('logged', !!val);
+					gatherObj.gatherElement.classList.toggle('logged', !!val);
 				};
 
 				if (prop === 'state') {
-					gatherObj.domElement.classList.toggle(prevValue, false);
-					gatherObj.domElement.classList.toggle(val, true);
+					gatherObj.gatherElement.classList.toggle(prevValue, false);
+					gatherObj.gatherElement.classList.toggle(val, true);
 				};
 
 				return true;
 			},
 		});
-		
+
 		const WEBSOCKET_ROUTES = {
 			'auth': ({ steamid = '' }) => {
 				GATHER.mySteamid = steamid;

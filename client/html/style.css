@@ -5,10 +5,6 @@
 
 * { padding: 0px; margin: 0px; box-sizing: border-box; font-family: "Montserrat:wght","Nunito", system-ui, sans-serif; font-weight: 600; }
 
-
-/* 
-	
-*/
 .loader {
 	position: absolute;
 	top: 0;
@@ -24,6 +20,54 @@
 
 #gather:not(.loading) {
 	.loader {
+		display: none;
+	}
+}
+
+#gather.logged {
+	.logged-hide {
+		display: none;
+	}
+}
+
+#gather:not(.logged) {
+	.logged-only {
+		display: none;
+	}
+}
+
+#gather.gathering {
+	.gathering-hide {
+		display: none;
+	}
+}
+
+#gather:not(.gathering) {
+	.gathering-only {
+		display: none;
+	}
+}
+
+#gather.gathered {
+	.gathered-hide {
+		display: none;
+	}
+}
+
+#gather:not(.gathered) {
+	.gathered-only {
+		display: none;
+	}
+}
+
+#gather.checking {
+	.checking-hide {
+		display: none;
+	}
+}
+
+#gather:not(.checking) {
+	.checking-only {
 		display: none;
 	}
 }
