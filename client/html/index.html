@@ -7,13 +7,16 @@
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="stylesheet" href="style.css" />
 </head>
-<body id="gather">
+<body id="gather" class="loading">
+	<div class="loader">...loading</div>
 	<input type="password" class="login-token-input" />
 
+	<script src="pako.js"></script>
 	<script>
 		const GATHER = new Proxy({
 			domElement: document.getElementById('gather'),
 			mySteamid: '',
+			a: 1,
 			state: 'loading',
 			readyroom: {},
 		}, {
@@ -21,6 +24,7 @@
 				const prevValue = gatherObj[prop];
 				gatherObj[prop] = val;
 
+				console.log(prop);
 				if (prop === 'mySteamid') {
 					gatherObj.domElement.classList.toggle('logged', !!val);
 				};
@@ -33,13 +37,20 @@
 				return true;
 			},
 		});
-
+		
 		const WEBSOCKET_ROUTES = {
 			'auth': ({ steamid = '' }) => {
 				GATHER.mySteamid = steamid;
 				if (!steamid) {
 					return localStorage.removeItem('gathertoken');
 				};
+			},
+			'gather_get': ({ gather }) => {
+				GATHER.state = gather.state;
+				// someday readyroom also will be proxy
+				Object.entries(gather.readyroom).forEach(([steamid, player]) => {
+					GATHER.readyroom[steamid] = player;
+				});
 			},
 		};
 
@@ -50,11 +61,18 @@
 				const [ steamid, token ] = localToken.split('@');
 				WEBSOCKET.send(JSON.stringify({ method: 'auth', steamid: steamid, token: token }));
 			};
+
+			WEBSOCKET.send(JSON.stringify({ method: 'gather_get' }));
 		};
 
 		WEBSOCKET.onerror = (e) => {};
 		WEBSOCKET.onclose = (e) => {};
-		WEBSOCKET.onmessage = ({ data }) => {
+		WEBSOCKET.onmessage = async ({ data }) => {
+			if (data instanceof Blob) {
+				data = await data.arrayBuffer();
+				data = pako.ungzip(data, { to: 'string' });
+			};
+
 			data = JSON.parse(data);
 			WEBSOCKET_ROUTES[data.method]?.(data);
 		};

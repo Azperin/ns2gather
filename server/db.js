@@ -55,6 +55,7 @@ User.generateToken = function(token_length = 160) {
 };
 
 function Gather() {
+	this.id = Date.now();
 	this.state = 'gathering'; // ['gathering', 'checking', 'gathered'] TODO: add state descriptions to readme
 	this.readyroom = new Readyroom(); // players
 	this[CONSTANTS.GATHER_CACHE_PROPERTY_NAME] = '';
@@ -68,6 +69,7 @@ Gather.prototype.clearCache = function () {
 
 Gather.prototype.resetGather = function () {
 	// or just create new Gather to this ?
+	this.id = Date.now();
 	this.state = 'gathering';
 	Object.keys(this.readyroom).forEach(key => {
 		delete this.readyroom[key];

@@ -4,3 +4,26 @@
 }
 
 * { padding: 0px; margin: 0px; box-sizing: border-box; font-family: "Montserrat:wght","Nunito", system-ui, sans-serif; font-weight: 600; }
+
+
+/* 
+	
+*/
+.loader {
+	position: absolute;
+	top: 0;
+	min-width: 100%;
+	min-height: 100%;
+	background-color: black;
+	z-index: 999;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	color: #fff;
+}
+
+#gather:not(.loading) {
+	.loader {
+		display: none;
+	}
+}

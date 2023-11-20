@@ -1,4 +1,5 @@
 require('dotenv').config();
+const zlib = require('node:zlib');
 const fs = require('node:fs');
 const DB = require('./db.js');
 const WEBSOCKET = require('ws');
