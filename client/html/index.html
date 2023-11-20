@@ -7,25 +7,71 @@
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body id="gather">
+	<input type="password" class="login-token-input" />
+
 	<script>
-		const WEBSOCKET_ADDR = getWebsocketAddress();
-		const WEBSOCKET = new WebSocket(WEBSOCKET_ADDR);
+		const GATHER = new Proxy({
+			domElement: document.getElementById('gather'),
+			mySteamid: '',
+			state: 'loading',
+			readyroom: {},
+		}, {
+			set: (gatherObj, prop, val) => {
+				const prevValue = gatherObj[prop];
+				gatherObj[prop] = val;
+
+				if (prop === 'mySteamid') {
+					gatherObj.domElement.classList.toggle('logged', !!val);
+				};
+
+				if (prop === 'state') {
+					gatherObj.domElement.classList.toggle(prevValue, false);
+					gatherObj.domElement.classList.toggle(val, true);
+				};
+
+				return true;
+			},
+		});
+
+		const WEBSOCKET_ROUTES = {
+			'auth': ({ steamid = '' }) => {
+				GATHER.mySteamid = steamid;
+				if (!steamid) {
+					return localStorage.removeItem('gathertoken');
+				};
+			},
+		};
+
+		const WEBSOCKET = new WebSocket(getWebsocketAddress());
 		WEBSOCKET.onopen = (e) => {
-
+			const localToken = localStorage.getItem('gathertoken') || '';
+			if (localToken) {
+				const [ steamid, token ] = localToken.split('@');
+				WEBSOCKET.send(JSON.stringify({ method: 'auth', steamid: steamid, token: token }));
+			};
 		};
 
-		WEBSOCKET.onerror = (e) => {
-
-		};
-
-		WEBSOCKET.onclose = (e) => {
-
-		};
-
+		WEBSOCKET.onerror = (e) => {};
+		WEBSOCKET.onclose = (e) => {};
 		WEBSOCKET.onmessage = ({ data }) => {
-
+			data = JSON.parse(data);
+			WEBSOCKET_ROUTES[data.method]?.(data);
 		};
+
+		document.querySelector('.login-token-input').addEventListener('input', ({ target }) => {
+			if (GATHER.mySteamid) return;
+			if (!target.value || target.value.length < 160 || target.value.length > 250) return;
+			const [ steamid, token ] = target.value.trim().split('@'); 
+			if (steamid && token) {
+				WEBSOCKET.send(JSON.stringify({ method: 'auth', steamid: steamid, token: token }));
+				localStorage.setItem('gathertoken', `${ steamid }@${ token }`);
+			};
+
+			// should notify user if token format is invalid
+			target.value = '';
+
+		});
 
 		function getWebsocketAddress() {
 			switch(location.protocol) {
