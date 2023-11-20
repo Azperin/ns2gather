@@ -145,7 +145,7 @@ Readyroom.prototype.isEnoughPlayersReady = function() {
 
 function Player(steamid) {
 	this.steamid = steamid;
-	this.name = this.db().users[steamid].avatar;
+	this.name = this.db().users[steamid].name;
 	this.avatar = this.db().users[steamid].avatar;
 	this.isReady = false;
 	return new Proxy(this, PROXY_HANDLERS.player);
