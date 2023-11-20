@@ -30,7 +30,7 @@ STEAM_USER.on('friendMessage', (steamID, message) => {
 });
 
 STEAM_USER.on('friendRelationship', (steamID, relationType) => {
-	const steamid = steam_univers_id.getSteamID64();
+	const steamid = steamID.getSteamID64();
 	if (!steamid) return;
 	if (relationType !== 2) return; // friend request
 	STEAM_USER.addFriend(steamid, (err) => {
