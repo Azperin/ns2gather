@@ -8,6 +8,33 @@
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-	<script></script>
+	<script>
+		const WEBSOCKET_ADDR = getWebsocketAddress();
+		const WEBSOCKET = new WebSocket(WEBSOCKET_ADDR);
+		WEBSOCKET.onopen = (e) => {
+
+		};
+
+		WEBSOCKET.onerror = (e) => {
+
+		};
+
+		WEBSOCKET.onclose = (e) => {
+
+		};
+
+		WEBSOCKET.onmessage = ({ data }) => {
+
+		};
+
+		function getWebsocketAddress() {
+			switch(location.protocol) {
+				case('file:'): return "ws://localhost:3545";
+				case('http:'): return `ws://${ location.hostname }:3545`;
+				case('https:'): return `wss://${ location.hostname }:3545`;
+				default: return 'dunno';
+			};
+		};
+	</script>
 </body>
 </html>

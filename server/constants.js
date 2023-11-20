@@ -16,4 +16,14 @@ Object.defineProperty(CONSTANTS, 'GATHER_CACHE_PROPERTY_NAME', {
 	writable: false,
 });
 
+Object.defineProperty(CONSTANTS, 'WEBSOCKET_DEFAULT_PORT', {
+	value: 3545,
+	writable: false,
+});
+
+Object.defineProperty(CONSTANTS, 'WEBSOCKET_ROUTES_ROOT_DIR', {
+	value: './websocket_routes',
+	writable: false,
+});
+
 module.exports = CONSTANTS;

@@ -121,7 +121,7 @@ Player.prototype.gather = function() {
 fs.mkdirSync(CONSTANTS.DB_USERS_FOLDER_PATH, { recursive: true });
 fs.readdirSync(CONSTANTS.DB_USERS_FOLDER_PATH, { withFileTypes: true } ).forEach(user_id => {
 	if (!user_id.name.endsWith('.json') || user_id.isDirectory()) return;
-	const user = require(`${ DB_USERS_FOLDER_PATH }/${ user_id.name }`);
+	const user = require(`${ CONSTANTS.DB_USERS_FOLDER_PATH }/${ user_id.name }`);
 	DB.addUser(user_id.name.replace('.json', ''), user);
 });
 
