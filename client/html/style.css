@@ -4,6 +4,62 @@
 }
 
 * { padding: 0px; margin: 0px; box-sizing: border-box; font-family: "Montserrat:wght","Nunito", system-ui, sans-serif; font-weight: 600; }
+body {
+	display: flex;
+	justify-content: center;
+	min-height: 100%;
+	background-color: black;
+	color: white;
+}
+
+button {
+	padding: 5px 15px;
+	cursor: pointer;
+	border-radius: 5px;
+	border: 1px solid rgb(223, 223, 223);
+	background-color: #272727;
+	font-weight: bold;
+	color: rgb(255, 255, 255);
+	opacity: .6;
+	transition: all .3s ease;
+}
+
+button:hover {
+	opacity: 1;;
+}
+
+.gather-contents {
+	display: grid;
+	gap: 20px;
+	grid-template-columns: minmax(300px, 1400px);
+}
+
+.header {
+	display: flex;
+	justify-content: right;
+	padding: 10px;
+}
+
+.gather-stats-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.gather-stats {
+	gap: 10px;
+	width: 300px;
+	display: flex;
+	justify-content: space-around;
+}
+
+.gather-stats > div > span {
+	font-size: 64px;
+}
+
+.gather-stats > div {
+	text-align: center;
+}
 
 .loader {
 	position: absolute;
@@ -16,6 +72,53 @@
 	justify-content: center;
 	align-items: center;
 	color: #fff;
+}
+
+#readyroom {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, 300px);
+	gap: 10px;
+	justify-content: center;
+}
+
+.player-card {
+	display: grid;
+	grid-template-areas:
+"pavatar pname pname"
+"pavatar psteamid psteamid";
+	grid-template-columns: 64px 100%;
+	border: 1px solid rgb(100, 100, 100);
+	padding: 5px;
+	overflow: hidden;
+	gap: 5px 13px;
+}
+
+#gather.checking .player-card:not(.is-ready) {
+	border: 1px solid red;
+}
+
+#gather.checking .player-card.is-ready {
+	border: 1px solid rgb(30, 255, 0);
+}
+
+.player-avatar {
+	min-width: 64px;
+	max-width: 64px;
+	min-height: 64px;
+	max-height: 64px;
+	grid-area: pavatar;
+}
+
+.player-name {
+	grid-area: pname;
+}
+
+.player-steamid {
+	font-size: 10px;
+	opacity: .5;
+	display: flex;
+	align-items:flex-end;
+	grid-area: psteamid;
 }
 
 #gather:not(.loading) {
