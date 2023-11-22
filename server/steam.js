@@ -4,7 +4,6 @@ const CONSTANTS = require('./constants.js');
 const SteamUser = require('steam-user');
 const STEAM_USER = new SteamUser();
 const PERSONAS_TO_UPDATE = new Set(Object.values(DB.users).filter(user => !user.name && user.steamid.length > 10).map(user => user.steamid));
-console.log(PERSONAS_TO_UPDATE);
 let isSteamUserOnline = false;
 
 STEAM_USER.on('loggedOn', () => {
