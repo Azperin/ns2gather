@@ -1,7 +1,10 @@
+require('dotenv').config();
 const fs = require('node:fs');
 const CONSTANTS = require('./constants.js');
 const PROXY_HANDLERS = require('./proxyHandlers.js');
 const DB = new Database();
+const GATHER_JOIN_THRESHOLD = parseInt((process.env.GATHER_JOIN_THRESHOLD ?? 2), 10);
+const GATHER_READY_THRESHOLD = parseInt((process.env.GATHER_READY_THRESHOLD ?? 99), 10);
 
 function Database() {
 	this.users = {};
@@ -75,7 +78,7 @@ Gather.prototype.resetGather = function (shouldArchive) {
 	};
 
 	this.id = Date.now();
-	
+
 	Object.keys(this.readyroom).forEach(key => {
 		delete this.readyroom[key];
 	});
@@ -138,11 +141,11 @@ Readyroom.prototype.removePlayer = function(steamid) {
 };
 
 Readyroom.prototype.isEnoughPlayersJoined = function() {
-	return Object.keys(this).length > 1;
+	return Object.keys(this).length >= GATHER_JOIN_THRESHOLD;
 };
 
 Readyroom.prototype.isEnoughPlayersReady = function() {
-	return Object.values(this).filter(player => player.isReady).length > 15;
+	return Object.values(this).filter(player => player.isReady).length >= GATHER_READY_THRESHOLD;
 };
 
 function Player(steamid) {
