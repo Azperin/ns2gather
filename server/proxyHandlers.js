@@ -1,5 +1,6 @@
 const fs = require('node:fs');
 const CONSTANTS = require('./constants.js');
+const DISCORD_SHOUT = require('./discordHook.js')
 const PROXY_HANDLERS = {
 	user: {
 		set: function(user, userProperty, newValue ) {
@@ -17,11 +18,16 @@ const PROXY_HANDLERS = {
 
 	gather: {
 		set: function(gather, gatherProperty, newValue ) {
+			gather[gatherProperty] = newValue;
+
 			if (gatherProperty !== CONSTANTS.GATHER_CACHE_PROPERTY_NAME) {
 				gather.clearCache();
 			};
-	
-			gather[gatherProperty] = newValue;
+
+			if (gatherProperty === 'state') {
+				DISCORD_SHOUT(gather);
+			};
+			
 			return true;
 		},
 	},

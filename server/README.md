@@ -2,6 +2,7 @@ Don't forget to turn off Steam Guard for bot account.
 
 ### `.env`
 ```
-STEAM_LOGIN=
-STEAM_PASSWORD=
+DISCORD_HOOK_URL=https://discord.com/api/webhooks/1111111111111111111/qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+STEAM_LOGIN=your steam login
+STEAM_PASSWORD=your steam password
 ```

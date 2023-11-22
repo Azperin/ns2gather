@@ -75,10 +75,12 @@ Gather.prototype.resetGather = function (shouldArchive) {
 	};
 
 	this.id = Date.now();
-	this.state = 'gathering';
+	
 	Object.keys(this.readyroom).forEach(key => {
 		delete this.readyroom[key];
 	});
+
+	this.state = 'gathering';
 	return this;
 };
 

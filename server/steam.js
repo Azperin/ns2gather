@@ -1,4 +1,9 @@
 require('dotenv').config();
+const STEAM_LOGIN = process.env.STEAM_LOGIN;
+const STEAM_PASSWORD = process.env.STEAM_PASSWORD;
+if (!STEAM_LOGIN && !STEAM_PASSWORD) {
+	throw new Error('REQUIRE STEAM ACCOUNT. Add credentials for your bot steam account in .env file. Variables are STEAM_LOGIN and STEAM_PASSWORD');
+};
 const DB = require('./db.js');
 const CONSTANTS = require('./constants.js');
 const SteamUser = require('steam-user');
