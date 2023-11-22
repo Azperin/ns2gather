@@ -121,80 +121,54 @@ button:hover {
 	grid-area: psteamid;
 }
 
-#gather:not(.loading) {
-	.loader {
-		display: none;
-	}
+#gather:not(.loading) .loader {
+	display: none;
 }
 
-#gather.logged {
-	.logged-hidden {
-		display: none;
-	}
+#gather.logged .logged-hidden {
+	display: none;
 }
 
-#gather:not(.logged) {
-	.logged-only {
-		display: none;
-	}
+#gather:not(.logged) .logged-only {
+	display: none;
 }
 
-#gather.gathering {
-	.gathering-hidden {
-		display: none;
-	}
+#gather.gathering .gathering-hidden {
+	display: none;
 }
 
-#gather:not(.gathering) {
-	.gathering-only {
-		display: none;
-	}
+#gather:not(.gathering) .gathering-only {
+	display: none;
 }
 
-#gather.gathered {
-	.gathered-hidden {
-		display: none;
-	}
+#gather.gathered .gathered-hidden {
+	display: none;
 }
 
-#gather:not(.gathered) {
-	.gathered-only {
-		display: none;
-	}
+#gather:not(.gathered) .gathered-only {
+	display: none;
 }
 
-#gather.checking {
-	.checking-hidden {
-		display: none;
-	}
+#gather.checking .checking-hidden {
+	display: none;
 }
 
-#gather:not(.checking) {
-	.checking-only {
-		display: none;
-	}
+#gather:not(.checking) .checking-only {
+	display: none;
 }
 
-#gather.checked {
-	.checked-hidden {
-		display: none;
-	}
+#gather.checked .checked-hidden {
+	display: none;
 }
 
-#gather:not(.checked) {
-	.checked-only {
-		display: none;
-	}
+#gather:not(.checked) .checked-only {
+	display: none;
 }
 
-#gather.joined {
-	.joined-hidden {
-		display: none;
-	}
+#gather.joined .joined-hidden {
+	display: none;
 }
 
-#gather:not(.joined) {
-	.joined-only {
-		display: none;
-	}
+#gather:not(.joined) .joined-only {
+	display: none;
 }
