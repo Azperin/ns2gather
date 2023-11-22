@@ -10,7 +10,19 @@
 <body id="gather" class="loading">
 	<div class="loader">...</div>
 	<div class="gather-contents">
-		<div class="header"><button class="logout-btn logged-only">LOGOUT</button><input type="password" class="logged-hidden login-token-input" placeholder="TOKEN" /></div>
+		<div class="header">
+			<button class="logout-btn logged-only">LOGOUT</button>
+			
+			<div class="friend-code-wrapper logged-hidden">
+				<input type="password" class="login-token-input" placeholder="TOKEN" />
+				<span class="friend-code">Friend code: 1168515233</span>
+				<div class="registration-info">
+					1. Send friend request to NS2 Server bot, using code above<br />
+					2. Type !auth in direct message to bot<br />
+					3. Copypaste token to input field in this site<br />
+				</div>
+			</div>
+		</div>
 
 		<div class="gather-stats-container">
 			<div class="gather-stats">
