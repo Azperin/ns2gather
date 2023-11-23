@@ -56,13 +56,16 @@ button:hover {
 	padding: 5px 10px;
 	border-radius: 5px;
 	cursor: pointer;
+	text-decoration: none;
+	color: #fff;
 }
 
 .friend-code-wrapper {
 	position: relative;
 }
 
-.friend-code-wrapper:not(:active) .registration-info {
+/* :not(:active) */
+.friend-code-wrapper .registration-info {
 	display: none;
 }
 
