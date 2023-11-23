@@ -7,10 +7,10 @@ const GATHER_CHECKING_DURATION = parseInt(process.env.GATHER_CHECKING_DURATION, 
 const GATHER_GRACE_PERIOD_DURATION = parseInt(process.env.GATHER_GRACE_PERIOD_DURATION, 10) || 15;
 const GATHER_STATE_ACTIONS = {
 	'gathering': (gather) => {
-		/*
-			Нужно уведомить юзеров что начался новый газер и попросить проследовать их на регистрацию
-		*/
 		const embededMsg = new DISCORDJS.EmbedBuilder();
+		const readyRoomCount = Object.values(gather.readyroom).length;
+		if (readyRoomCount) return;
+		
 		embededMsg.setColor('ff0000');
 		embededMsg.setTitle('https://ns2gather.ru');
 		embededMsg.setDescription('New gather was created, come and join !');
