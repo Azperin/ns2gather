@@ -21,7 +21,7 @@ const GATHER_STATE_ACTIONS = {
 		// embededMsg.addFields({ name: 'fieldname1', value: 'fieldvalue1' });
 		// embededMsg.addFields({ name: 'fieldname2', value: 'fieldvalue2' });
 		// embededMsg.addFields({ name: 'fieldname3', value: 'fieldvalue3' });
-		WEBHOOK.send({ content: null, embeds:[ embededMsg ] });
+		WEBHOOK.send({ content: null, embeds:[ embededMsg ] }).catch(e => '');
 	},
 	'checking': (gather) => {
 		const embededMsg = new DISCORDJS.EmbedBuilder();
@@ -31,7 +31,7 @@ const GATHER_STATE_ACTIONS = {
 		embededMsg.setTitle('https://ns2gather.ru');
 		embededMsg.setDescription(`We have ${ readyRoomCount } players in readyroom!\n<t:${ checkingEndsAt }:R> checking stage will be close and ones who did not confirm their ready state will be blocked for some time.`);
 		embededMsg.setURL('https://ns2gather.ru/');
-		WEBHOOK.send({ content: null, embeds:[ embededMsg ] });
+		WEBHOOK.send({ content: null, embeds:[ embededMsg ] }).catch(e => '');
 	},
 	'gathered': (gather) => {
 		const embededMsg = new DISCORDJS.EmbedBuilder();
@@ -43,7 +43,7 @@ const GATHER_STATE_ACTIONS = {
 		embededMsg.setTitle('https://ns2gather.ru');
 		embededMsg.setDescription(`Looks like we have gather ${ checkedPlayersCount } players, awaits them to join server.\n<t:${ graceEndsAt }:R> will be created a new instance of gather, shortly after we will recheck server and block players who was ready, but not connected to the server.`);
 		embededMsg.setURL('https://ns2gather.ru/');
-		WEBHOOK.send({ content: null, embeds:[ embededMsg ] });
+		WEBHOOK.send({ content: null, embeds:[ embededMsg ] }).catch(e => '');
 	},
 };
 
