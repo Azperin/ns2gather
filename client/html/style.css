@@ -106,19 +106,6 @@ button:hover {
 	text-align: center;
 }
 
-.loader {
-	position: absolute;
-	top: 0;
-	min-width: 100%;
-	min-height: 100%;
-	background-color: black;
-	z-index: 999;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	color: #fff;
-}
-
 #readyroom {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, 300px);
@@ -164,10 +151,6 @@ button:hover {
 	display: flex;
 	align-items:flex-end;
 	grid-area: psteamid;
-}
-
-#gather:not(.loading) .loader {
-	display: none;
 }
 
 #gather.logged .logged-hidden {
