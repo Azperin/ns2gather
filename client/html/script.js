@@ -3,34 +3,39 @@ const PLAYER_CARD_TEMPLATE = document.getElementById('player-card-template');
 const GATHER = new Proxy({
 	gatherElement: document.getElementById('gather'),
 	mySteamid: '',
+	isBlocked: false,
 	state: 'loading',
 	readyroom: new Readyroom(),
 }, {
-	set: (gatherObj, prop, val) => {
-		const prevValue = gatherObj[prop];
-		gatherObj[prop] = val;
+	set: (gather, prop, val) => {
+		const prevValue = gather[prop];
+		gather[prop] = val;
 
 		if (prop === 'mySteamid') {
 			if (!val) {
-				gatherObj.gatherElement.classList.remove('logged');
-				gatherObj.gatherElement.classList.remove('joined');
-				gatherObj.gatherElement.classList.remove('checked');
+				gather.gatherElement.classList.remove('logged');
+				gather.gatherElement.classList.remove('joined');
+				gather.gatherElement.classList.remove('checked');
 			} else {
-				gatherObj.gatherElement.classList.add('logged');
-				const isJoined = gatherObj.readyroom.hasOwnProperty(val);
-				gatherObj.gatherElement.classList.toggle('joined', isJoined);
+				gather.gatherElement.classList.add('logged');
+				const isJoined = gather.readyroom.hasOwnProperty(val);
+				gather.gatherElement.classList.toggle('joined', isJoined);
 				if (isJoined) {
-					const isChecked = gatherObj.readyroom[val].isReady;
-					gatherObj.gatherElement.classList.toggle('checked', isChecked);
+					const isChecked = gather.readyroom[val].isReady;
+					gather.gatherElement.classList.toggle('checked', isChecked);
 				} else {
-					gatherObj.gatherElement.classList.remove('checked');
+					gather.gatherElement.classList.remove('checked');
 				};
 			};
 		};
 
 		if (prop === 'state') {
-			gatherObj.gatherElement.classList.toggle(prevValue, false);
-			gatherObj.gatherElement.classList.toggle(val, true);
+			gather.gatherElement.classList.toggle(prevValue, false);
+			gather.gatherElement.classList.toggle(val, true);
+		};
+
+		if (prop === 'isBlocked') {
+			gather.gatherElement.classList.toggle('blocked', val);
 		};
 
 		return true;
@@ -38,72 +43,74 @@ const GATHER = new Proxy({
 });
 
 const WEBSOCKET_ROUTES = {
-	'auth': ({ steamid = '', blocksCount, blockUntil }) => {
+	'auth': ({ steamid = '', isBlocked = false }) => {
 		GATHER.mySteamid = steamid;
+		GATHER.isBlocked = isBlocked;
+
 		if (!steamid) {
 			return localStorage.removeItem('gathertoken');
 		};
 	},
-	'gather_get': ({ gather, blocks }) => {
-		// blocks contain information about previous failed checking phase
+
+	'gather_sync': ({ gather }) => {
 		GATHER.state = gather.state;
 		GATHER.id = gather.id;
-
-		Object.keys(GATHER.readyroom).forEach((steamid) => {
-			GATHER.readyroom.removePlayer(steamid);
-		});
-
-		Object.values(gather.readyroom).forEach((player) => {
-			GATHER.readyroom.addPlayer(player);
-		});
+		GATHER.readyroom.clearRoom().fillRoom(gather.readyroom);
 	},
-	'gather_state': ({ state }) => {
-		GATHER.state = state;
-	},
-	'readyroom': ({ steamid, leave, isReady, player }) => {
+
+	'readyroom': ({ player, steamid }) => {
 		if (player) {
 			GATHER.readyroom.addPlayer(player);
 			return;
 		};
 
-		if (leave) {
+		if (steamid) {
 			GATHER.readyroom.removePlayer(steamid);
 			return;
 		};
+	},
 
-		if (isReady) {
-			GATHER.readyroom[steamid].isReady = isReady;
-			return;
-		};
+	'gather': ({ prop, val }) => {
+		GATHER[prop] = val;
+	},
+
+	'player': ({ steamid, prop, val }) => {
+		GATHER.readyroom[steamid][prop] = val;
 	},
 };
 
 const WEBSOCKET = new WebSocket(getWebsocketAddress());
-WEBSOCKET.onopen = (e) => {
-	const localToken = localStorage.getItem('gathertoken') || '';
-	if (localToken) {
-		const [ steamid, token ] = localToken.split('@');
-		WEBSOCKET.send(JSON.stringify({ method: 'auth', steamid: steamid, token: token }));
-	};
 
-	WEBSOCKET.send(JSON.stringify({ method: 'gather_get' }));
-};
-
-WEBSOCKET.onerror = (e) => {
-	GATHER.state = 'loading';
-};
-WEBSOCKET.onclose = (e) => {
-	GATHER.state = 'loading';
-};
-WEBSOCKET.onmessage = async ({ data }) => {
+WEBSOCKET.addEventListener('message', async ({ data }) => {
 	if (data instanceof Blob) {
 		data = await data.arrayBuffer();
 		data = pako.ungzip(data, { to: 'string' });
 	};
 
 	data = JSON.parse(data);
+	console.log(data);
 	WEBSOCKET_ROUTES[data.method]?.(data);
-};
+});
+
+WEBSOCKET.addEventListener('open', () => {
+	const localToken = localStorage.getItem('gathertoken') || '';
+	if (localToken) {
+		const [ steamid, token ] = localToken.split('@');
+		WEBSOCKET.send(JSON.stringify({ method: 'auth', steamid: steamid, token: token }));
+	};
+
+	WEBSOCKET.send(JSON.stringify({ method: 'gather_sync' }));
+});
+
+WEBSOCKET.addEventListener('error', () => {
+	// document.querySelector('.loader').textContent = 'Lost connection';
+	GATHER.state = 'loading';
+});
+
+WEBSOCKET.addEventListener('close', () => {
+	// document.querySelector('.loader').textContent = 'Lost connection';
+	GATHER.state = 'loading';
+});
 
 document.querySelector('.login-token-input').addEventListener('input', ({ target }) => {
 	
@@ -164,7 +171,6 @@ Readyroom.prototype.addPlayer = function(player) {
 	const counter = Object.keys(this).length;
 	document.querySelector('.joined-counter span').innerText = `${ counter }`;
 
-
 	return this[player.steamid];
 };
 
@@ -186,14 +192,33 @@ Readyroom.prototype.removePlayer = function(steamid) {
 	return this;
 };
 
+Readyroom.prototype.fillRoom = function(players) {
+	Object.values(players).forEach(player => {
+		this.addPlayer(player);
+	});
+
+	return this;
+};
+
+Readyroom.prototype.clearRoom = function() {
+	Object.keys(this).forEach(steamid => {
+		this.domElement?.remove();
+		delete this[steamid];
+	});
+
+	return this;
+};
+
 const playerProxyHandlers = {
 	set: (player, playerProp, val) => {
 		player[playerProp] = val;
 
 		if (playerProp === 'isReady') {
 			player.playerCardElement.classList.toggle('is-ready', val);
-			GATHER.gatherElement.classList.toggle('checked', val);
-
+			if (GATHER.mySteamid === player.steamid) {
+				GATHER.gatherElement.classList.toggle('checked', val);
+			};
+			
 			const counter = Object.values(GATHER.readyroom).filter(x => x.isReady).length;
 			document.querySelector('.ready-counter span').innerText = `${ counter }`;
 		};
@@ -203,7 +228,6 @@ const playerProxyHandlers = {
 };
 
 function Player(player) {
-	// should readyroom handle cards or players themselfs ?
 	const el = document.importNode(PLAYER_CARD_TEMPLATE.content, true);
 	const playerCardElement = el.querySelector('.player-card');
 

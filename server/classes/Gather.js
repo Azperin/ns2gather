@@ -1,13 +1,15 @@
-require('dotenv').config();
+import 'dotenv/config';
+import Readyroom from './Readyroom.js';
+import WSS from '../websocket.js';
 const DISCORD_HOOK_URL = process.env.DISCORD_HOOK_URL;
-const DISCORDJS = require('discord.js');
 const hookOpts = { messageCacheLifetime: 60, messageSweepInterval: 60 };
-const WEBHOOK = DISCORD_HOOK_URL ? (new DISCORDJS.WebhookClient({ url: DISCORD_HOOK_URL }, hookOpts)) : undefined;
+import { EmbedBuilder, WebhookClient } from 'discord.js';
+const WEBHOOK = DISCORD_HOOK_URL ? (new WebhookClient({ url: DISCORD_HOOK_URL }, hookOpts)) : undefined;
 const GATHER_CHECKING_DURATION = parseInt(process.env.GATHER_CHECKING_DURATION, 10) || 15;
 const GATHER_GRACE_PERIOD_DURATION = parseInt(process.env.GATHER_GRACE_PERIOD_DURATION, 10) || 15;
 const GATHER_STATE_ACTIONS = {
 	'gathering': (gather) => {
-		const embededMsg = new DISCORDJS.EmbedBuilder();
+		const embededMsg = new EmbedBuilder();
 		const readyRoomCount = Object.values(gather.readyroom).length;
 		if (readyRoomCount) return;
 		
@@ -24,7 +26,7 @@ const GATHER_STATE_ACTIONS = {
 		WEBHOOK.send({ content: null, embeds:[ embededMsg ] }).catch(e => '');
 	},
 	'checking': (gather) => {
-		const embededMsg = new DISCORDJS.EmbedBuilder();
+		const embededMsg = new EmbedBuilder();
 		const readyRoomCount = Object.values(gather.readyroom).length;
 		const checkingEndsAt = Math.floor(Date.now() / 1000) + GATHER_CHECKING_DURATION;
 		embededMsg.setColor('fff500');
@@ -34,7 +36,7 @@ const GATHER_STATE_ACTIONS = {
 		WEBHOOK.send({ content: null, embeds:[ embededMsg ] }).catch(e => '');
 	},
 	'gathered': (gather) => {
-		const embededMsg = new DISCORDJS.EmbedBuilder();
+		const embededMsg = new EmbedBuilder();
 		const readyRoomObj = Object.values(gather.readyroom);
 		const readyRoomCount = readyRoomObj.length;
 		const checkedPlayersCount = readyRoomCount.filter(player => player.isReady).length;
@@ -47,9 +49,37 @@ const GATHER_STATE_ACTIONS = {
 	},
 };
 
-function DISCORD_SHOUT(gather) {
-	if (!WEBHOOK || !gather) return;
-	GATHER_STATE_ACTIONS[gather.state]?.(gather);
+const gatherProxyHandlers = {
+	set: (gather, prop, val) => {
+		gather[prop] = val;
+
+		if (prop === 'state') {
+			if (WEBHOOK) {
+				GATHER_STATE_ACTIONS[val]?.(gather);
+			};
+		};
+
+		WSS.broadcast(JSON.stringify({ method: 'gather', prop: prop, val: val }));
+
+		return true;
+	},
 };
 
-module.exports = DISCORD_SHOUT;
+class Gather {
+	constructor(state = 'gathering') {
+		this.id = Date.now();
+		this.state = state;
+		this.readyroom = new Readyroom();
+		return new Proxy(this, gatherProxyHandlers);
+	}
+
+	resetGather() {
+		this.readyroom.clearAll();
+		this.id = Date.now();
+		this.state = 'gathering';
+		return this;
+	}
+}
+
+
+export default Gather;
