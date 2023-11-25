@@ -103,12 +103,12 @@ WEBSOCKET.addEventListener('open', () => {
 });
 
 WEBSOCKET.addEventListener('error', () => {
-	// document.querySelector('.loader').textContent = 'Lost connection';
+	document.querySelector('.loader').textContent = 'Lost connection';
 	GATHER.state = 'loading';
 });
 
 WEBSOCKET.addEventListener('close', () => {
-	// document.querySelector('.loader').textContent = 'Lost connection';
+	document.querySelector('.loader').textContent = 'Lost connection';
 	GATHER.state = 'loading';
 });
 
@@ -232,6 +232,8 @@ function Player(player) {
 	const playerCardElement = el.querySelector('.player-card');
 
 	playerCardElement.querySelector('.player-card .player-name').innerText = player.name || player.steamid;
+	playerCardElement.querySelector('.player-card .player-steamid').innerText = player.steamid;
+	
 	if (player.avatar) {
 		playerCardElement.querySelector('.player-avatar-img').src = `https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/${ player.avatar }`;
 	};
