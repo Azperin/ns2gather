@@ -36,6 +36,19 @@ button:hover {
 	opacity: 1;
 }
 
+.loader {
+	position: absolute;
+	top: 0;
+	min-width: 100%;
+	min-height: 100%;
+	background-color: black;
+	z-index: 999;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	color: #fff;
+}
+
 .gather-contents {
 	display: grid;
 	gap: 20px;
@@ -151,6 +164,18 @@ button:hover {
 	display: flex;
 	align-items:flex-end;
 	grid-area: psteamid;
+}
+
+#gather:not(.loading) .loader {
+	display: none;
+}
+
+#gather.blocked .blocked-hidden {
+	display: none;
+}
+
+#gather:not(.blocked) .blocked-only {
+	display: none;
 }
 
 #gather.logged .logged-hidden {
