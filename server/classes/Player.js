@@ -1,8 +1,10 @@
 import WSS from '../websocket.js';
+import CACHE from "../cache.js";
 
 const playerProxyHandlers = {
 	set: (player, prop, val) => {
 		player[prop] = val;
+		CACHE.gatherSyncMessage = '';
 		WSS.broadcast(JSON.stringify({ method: 'player', steamid: player.steamid, prop: prop, val: val }));
 		return true;
 	},

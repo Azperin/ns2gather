@@ -1,5 +1,5 @@
-const TOKEN_SYMBOLS = 'abcdefghijklmnopqrstuvwxyz_.!?$-ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789'.split('');
 import fs from 'node:fs';
+const TOKEN_SYMBOLS = 'abcdefghijklmnopqrstuvwxyz_.!?$-ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789'.split('');
 
 const userProxyHandlers = {
 	set: (user, prop, val) => {

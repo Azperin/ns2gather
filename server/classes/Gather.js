@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import CACHE from "../cache.js";
 import Readyroom from './Readyroom.js';
 import WSS from '../websocket.js';
 const DISCORD_HOOK_URL = process.env.DISCORD_HOOK_URL;
@@ -52,7 +53,7 @@ const GATHER_STATE_ACTIONS = {
 const gatherProxyHandlers = {
 	set: (gather, prop, val) => {
 		gather[prop] = val;
-
+		CACHE.gatherSyncMessage = '';
 		if (prop === 'state') {
 			if (WEBHOOK) {
 				GATHER_STATE_ACTIONS[val]?.(gather);

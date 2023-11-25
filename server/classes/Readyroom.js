@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import CACHE from "../cache.js";
 import Player from "./Player.js";
 import WSS from '../websocket.js';
 
@@ -8,11 +9,13 @@ const GATHER_READY_THRESHOLD = process.env.GATHER_READY_THRESHOLD;
 const readyroomProxyHandlers = {
 	set: (readyroom, prop, val) => {
 		readyroom[prop] = val;
+		CACHE.gatherSyncMessage = '';
 		WSS.broadcast(JSON.stringify({ method: 'readyroom', player: val }));
 		return true;
 	},
 	deleteProperty: function(readyroom, steamid) {
 		delete readyroom[steamid];
+		CACHE.gatherSyncMessage = '';
 		WSS.broadcast(JSON.stringify({ method: 'readyroom', steamid: steamid }));
 		return true;
 	},
