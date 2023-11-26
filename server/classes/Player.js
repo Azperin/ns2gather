@@ -14,6 +14,7 @@ class Player {
 	constructor(user) {
 		this.steamid = user.steamid;
 		this.name = user.name;
+		this.avatar = user.avatar;
 		this.isReady = false;
 		return new Proxy(this, playerProxyHandlers);
 	}
