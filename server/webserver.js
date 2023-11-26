@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import fs from 'node:fs';
 const SERVER_PORT = 3545;
 const webServerOpts = {};
 
