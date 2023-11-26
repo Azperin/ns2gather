@@ -1,24 +1,14 @@
-import 'dotenv/config';
 import { WebSocketServer } from 'ws';
 import { gzipSync } from 'node:zlib';
-import { createServer } from 'node:https';
-const opts = { port: 3545, perMessageDeflate: false, server: undefined, maxPayload: 1024 * 300 };
 
-if (process.env.SERVER_CERTIFICATE_PATH && process.env.SERVER_CERTIFICATE_KEY_PATH) {
-	const server = createServer({ 
-		key: fs.readFileSync(process.env.SERVER_CERTIFICATE_KEY_PATH), 
-		cert: fs.readFileSync(process.env.SERVER_CERTIFICATE_PATH)
-	});
-	opts.server = server;
-	server.listen(opts.port);
-};
 
 class _WSS extends WebSocketServer {
-	constructor() {
+	constructor(opts) {
 		super(opts);
 		return this;
 	}
 
+	// more like monkey patching
 	broadcast(message, compressLevel = 0) {
 		let binary = false;
 		if (compressLevel) {
