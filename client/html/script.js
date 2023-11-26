@@ -2,6 +2,7 @@ const PLAYER_CARD_TEMPLATE = document.getElementById('player-card-template');
 
 const GATHER = new Proxy({
 	gatherElement: document.getElementById('gather'),
+	id: 0,
 	mySteamid: '',
 	isBlocked: false,
 	state: 'loading',
@@ -129,17 +130,17 @@ document.querySelector('.login-token-input').addEventListener('input', ({ target
 
 document.querySelector('.rr-join-btn').addEventListener('click', (e) => {
 	if (!GATHER.mySteamid) return;
-	WEBSOCKET.send(JSON.stringify({ method: 'readyroom_join' }));
+	WEBSOCKET.send(JSON.stringify({ method: 'readyroom_join', gid: GATHER.id }));
 });
 
 document.querySelector('.rr-leave-btn').addEventListener('click', (e) => {
 	if (!GATHER.mySteamid) return;
-	WEBSOCKET.send(JSON.stringify({ method: 'readyroom_leave' }));
+	WEBSOCKET.send(JSON.stringify({ method: 'readyroom_leave', gid: GATHER.id }));
 });
 
 document.querySelector('.rr-ready-btn').addEventListener('click', (e) => {
 	if (!GATHER.mySteamid) return;
-	WEBSOCKET.send(JSON.stringify({ method: 'readyroom_check' }));
+	WEBSOCKET.send(JSON.stringify({ method: 'readyroom_check', gid: GATHER.id }));
 });
 
 document.querySelector('.logout-btn').addEventListener('click', () => {
