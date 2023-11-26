@@ -8,5 +8,5 @@ jobs:
   build:
     runs-on: self-hosted
     steps:
-    - run: ls
-    
+    - run: cd /var/www/ns2gather
+    - run: npm run gitpull
