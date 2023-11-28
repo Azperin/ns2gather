@@ -7,7 +7,9 @@ if (!STEAM_LOGIN && !STEAM_PASSWORD) {
 	throw new Error('REQUIRE STEAM ACCOUNT. Add credentials for your bot steam account in .env file. Variables are STEAM_LOGIN and STEAM_PASSWORD');
 };
 const STEAM_USER = new SteamUser();
-const PERSONAS_TO_UPDATE = new Set(Object.values(DB.users).filter(user => !user.name && user.steamid.length > 10).map(user => user.steamid));
+const PERSONAS_TO_UPDATE = new Set(Object.values(DB.users).filter(user => {
+	return !user.name || !user.avatar;
+}).map(user => user.steamid));
 let isSteamUserOnline = false;
 
 STEAM_USER.on('loggedOn', () => {
@@ -68,7 +70,7 @@ setInterval(() => {
 		Object.keys(personas).forEach(steamid => {
 			if (!DB.users.hasOwnProperty(steamid)) return;
 			DB.users[steamid].name = personas[steamid].player_name ?? '';
-			DB.users[steamid].avatar = personas[steamid].avatar_url_medium?.replace('', '') ?? '';
+			DB.users[steamid].avatar = personas[steamid].avatar_url_medium?.replace('https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/', '') ?? '';
 			PERSONAS_TO_UPDATE.delete(steamid);
 		});
 	});
