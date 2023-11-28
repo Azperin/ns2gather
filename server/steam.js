@@ -68,7 +68,7 @@ setInterval(() => {
 		Object.keys(personas).forEach(steamid => {
 			if (!DB.users.hasOwnProperty(steamid)) return;
 			DB.users[steamid].name = personas[steamid].player_name ?? '';
-			DB.users[steamid].avatar = personas[steamid].avatar_url_medium?.replace(CONSTANTS.STEAM_AVATAR_DEFAULT_URL, '') ?? '';
+			DB.users[steamid].avatar = personas[steamid].avatar_url_medium?.replace('', '') ?? '';
 			PERSONAS_TO_UPDATE.delete(steamid);
 		});
 	});
